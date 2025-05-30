@@ -11,5 +11,5 @@
 ## How to use:
   - Clone repository in the src directory in your ROS2 workspace
   - Do colcon build
-  - In a separate terminal run: ros2 run ROS2---Custom-Behavior-tree-log-reader behavior_tree_monitor
+  - In a separate terminal run: ros2 run behavior_tree_monitor behavior_tree_monitor
   - Output can be accessed using the /goal_reachable topic.
