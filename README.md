@@ -27,3 +27,5 @@ Node(
     parameters=[{'use_sim_time': True}]
 )
 
+```
+- This way the node is being ran whenever you run the slam node. (This example refers to the unity_slam_example)
