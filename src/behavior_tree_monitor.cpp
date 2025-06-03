@@ -21,21 +21,16 @@ public:
 private:
   void btLogCallback(const nav2_msgs::msg::BehaviorTreeLog::SharedPtr msg)
   {
-    bool has_failure = false;
-    bool has_idle = false;
+    bool goal_reachable = true;
 
     for (const auto & log_entry : msg->event_log) {
       const std::string & status = log_entry.current_status;
 
-      if (status.find("FAILURE") != std::string::npos) {
-        has_failure = true;
-      }
-      if (status.find("IDLE") != std::string::npos) {
-        has_idle = true;
+      if (status == "FAILURE" || status == "IDLE") {
+        goal_reachable = false;
+        break;
       }
     }
-
-    bool goal_reachable = !(has_failure && has_idle);
 
     std_msgs::msg::Bool bool_msg;
     bool_msg.data = goal_reachable;
