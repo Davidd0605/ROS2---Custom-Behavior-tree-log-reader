@@ -26,7 +26,7 @@ private:
     for (const auto & log_entry : msg->event_log) {
       const std::string & status = log_entry.current_status;
 
-      if (status == "FAILURE" || status == "IDLE") {
+      if (status.find("FAILURE") || status.find("IDLE")) {
         goal_reachable = false;
         break;
       }
