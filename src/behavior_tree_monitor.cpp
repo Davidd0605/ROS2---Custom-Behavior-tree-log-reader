@@ -11,36 +11,38 @@ public:
   BehaviorTreeMonitor()
   : Node("behavior_tree_monitor")
   {
-    // Subscriber to behavior_tree_log
     subscription_ = this->create_subscription<nav2_msgs::msg::BehaviorTreeLog>(
       "/behavior_tree_log", 10,
       std::bind(&BehaviorTreeMonitor::btLogCallback, this, std::placeholders::_1));
 
-    // Publisher for goal reachable boolean
     publisher_ = this->create_publisher<std_msgs::msg::Bool>("/goal_reachable", 10);
   }
 
 private:
-void btLogCallback(const nav2_msgs::msg::BehaviorTreeLog::SharedPtr msg)
-{
-  bool goal_reachable = true;
+  void btLogCallback(const nav2_msgs::msg::BehaviorTreeLog::SharedPtr msg)
+  {
+    bool has_failure = false;
+    bool has_idle = false;
 
-  for (const auto & log_entry : msg->event_log) {
-    std::string current_status = log_entry.current_status;
+    for (const auto & log_entry : msg->event_log) {
+      const std::string & status = log_entry.current_status;
 
-    if (current_status.find("current_status: FAILURE") != std::string::npos)
-    {
-      goal_reachable = false;
-      break;
+      if (status.find("FAILURE") != std::string::npos) {
+        has_failure = true;
+      }
+      if (status.find("IDLE") != std::string::npos) {
+        has_idle = true;
+      }
     }
+
+    bool goal_reachable = !(has_failure && has_idle);
+
+    std_msgs::msg::Bool bool_msg;
+    bool_msg.data = goal_reachable;
+
+    RCLCPP_INFO(this->get_logger(), "Publishing goal_reachable: %s", goal_reachable ? "true" : "false");
+    publisher_->publish(bool_msg);
   }
-
-  std_msgs::msg::Bool bool_msg;
-  bool_msg.data = goal_reachable;
-
-  RCLCPP_INFO(this->get_logger(), "Publishing goal_reachable: %s", goal_reachable ? "true" : "false");
-  publisher_->publish(bool_msg);
-}
 
   rclcpp::Subscription<nav2_msgs::msg::BehaviorTreeLog>::SharedPtr subscription_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
