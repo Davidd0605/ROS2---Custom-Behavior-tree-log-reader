@@ -1,5 +1,6 @@
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include "rclcpp/rclcpp.hpp"
 #include "nav2_msgs/msg/behavior_tree_log.hpp"
@@ -23,20 +24,26 @@ private:
   {
     bool goal_reachable = true;
 
-    for (const auto & log_entry : msg->event_log) {
-      const std::string & status = log_entry.current_status;
+    for (const auto & entry : msg->event_log) {
+      std::ostringstream oss;
+      oss << entry;  // dump entry into stringstream
+      std::string log_str = oss.str();
 
-      if (status.find("FAILURE") || status.find("IDLE")) {
+      // Debug print the full string if needed
+      RCLCPP_DEBUG(this->get_logger(), "Entry: %s", log_str.c_str());
+
+      // If "FAILURE" or "IDLE" appears anywhere
+      if (log_str.find("FAILURE") != std::string::npos ||
+          log_str.find("IDLE") != std::string::npos) {
         goal_reachable = false;
         break;
       }
     }
 
-    std_msgs::msg::Bool bool_msg;
-    bool_msg.data = goal_reachable;
-
+    std_msgs::msg::Bool result;
+    result.data = goal_reachable;
     RCLCPP_INFO(this->get_logger(), "Publishing goal_reachable: %s", goal_reachable ? "true" : "false");
-    publisher_->publish(bool_msg);
+    publisher_->publish(result);
   }
 
   rclcpp::Subscription<nav2_msgs::msg::BehaviorTreeLog>::SharedPtr subscription_;
